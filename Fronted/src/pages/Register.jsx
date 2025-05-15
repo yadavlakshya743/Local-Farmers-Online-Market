@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-
+import { Link,useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import '../App.css'
 const Register = () => {
   const [role, setRole] = useState('customer');
   const [name, setName] = useState('');
@@ -8,24 +9,57 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+
+    const userData = { name, email, password, role, phone, address };
+    setLoading(true);
+
+    const result = await registerUser(userData);
+
+    setLoading(false);
+
+    if (result.success) {
+      alert('Registration successful!');
+      navigate('/login');
+    } else {
+      alert(result.error);
+    }
+  };
+
+  const registerUser = async (userData) => {
+    try {
+      const response = await axios.post('http://localhost:8000/api/auth/register', userData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Registration failed',
+      };
+    }
+  };
 
   return (
     <div className="flex h-screen">
-     
+      {/* Left image section */}
       <div className="w-1/2 bg-gradient-to-br from-green-200 to-green-500 flex items-center justify-center">
         <img
-          src="/farmer-image.jpg" 
+          src="https://img.freepik.com/free-vector/organic-farming-concept_23-2148433516.jpg?semt=ais_hybrid&w=740"
           alt="Farmer"
           className="w-3/4 h-auto"
         />
       </div>
 
-    
+      {/* Right form section */}
       <div className="w-1/2 flex flex-col justify-center px-20">
         <h2 className="text-4xl font-bold mb-4 text-gray-800">Welcome to AgriMarket!</h2>
         <p className="mb-6 text-gray-600">Register your account</p>
 
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleRegister}>
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
@@ -80,9 +114,14 @@ const Register = () => {
 
           <button
             type="submit"
-            className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition"
+            disabled={loading}
+            className={`w-full py-2 rounded-md transition ${
+              loading
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-green-500 hover:bg-green-600 text-white'
+            }`}
           >
-            Register
+            {loading ? 'Registering...' : 'Register'}
           </button>
         </form>
 
